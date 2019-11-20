@@ -1,0 +1,293 @@
+<!-- <html>
+  <head>
+    <meta charset="utf-8" />
+    <title>ATL map</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.min.js"></script>
+    <script src="roads.js"></script>
+
+    <link
+      href="http://fonts.googleapis.com/css?family=Montserrat"
+      rel="stylesheet"
+      type="text/css"
+    />
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+            background: whitesmoke;
+        }
+        h1, h2 {
+            position: absolute;
+            left: 20px;
+            top: 10px;
+            font-family: "Proxima Nova", Montserrat, sans-serif;
+            font-size: 2em;
+            font-weight: 100;
+            color: green ;
+        }
+         h2 {
+            top: 50px;
+            font-size: 1.6em;
+      }
+        .county {
+          stroke: green ;
+          fill: hsla(9, 100%, 64%, .0);
+        }
+         .hover {
+            fill: hsla(9, 100%, 64%, 1);
+        }
+         .map {
+        margin: auto;
+        width: 50%;
+        border: 0px solid green;
+        padding: 25px;
+    </style>
+  </head>
+  <body>
+    <div class="map">
+      <h1>ATL</h1>
+    </div>
+
+    <script>
+      //set a frame
+      var width = 900,
+        height = 600;
+      //update body with frame size
+      var svg = d3
+        .select(".map")
+        .append("svg")
+        .attr("width", width)
+        .attr("height", height);
+      //scale projection
+      var projection = d3.geo
+        .albers()
+        .center([0, 33.74])
+        .rotate([84.38, 0])
+        .scale(130000)
+        .translate([width / 2, height / 2]);
+
+      var geoPath = d3.geo.path().projection(projection);
+
+      svg
+        .append("g") // create and append a new SVG 'g' element to the svg
+        .selectAll("path") // selectAll the path features that haven't been created yet
+        .data(roads_json.features) // bind the GeoJSON features data to them
+        .enter() // prepare to
+        .append("path") // append the newly create path elements to the 'g'
+        .attr("d", geoPath) // define the screen coordinates of the new path(s)
+        .attr("class", "county"); // give each a class name of 'county'
+    </script>
+  </body>
+</html> -->
+
+
+
+<!DOCTYPE html>
+<meta charset="utf-8" />
+<head>
+  <script src="atlneighborhoods.js"></script>
+  <script src="roads.js"></script>
+</head>
+
+<style>
+  @import url(http://fonts.googleapis.com/css?family=Open+Sans+Condensed:300|Josefin+Slab|Arvo|Lato|Vollkorn|Abril+Fatface|Old+Standard+TT|Droid+Sans|Lobster|Inconsolata|Montserrat|Playfair+Display|Karla|Alegreya|Libre+Baskerville|Merriweather|Lora|Archivo+Narrow|Neuton|Signika|Questrial|Fjalla+One|Bitter|Varela+Round);
+
+  .background {
+    fill: #eee;
+    pointer-events: all;
+  }
+
+  .map-layer {
+    stroke: #fff;
+    fill: hsla(9, 100%, 64%, 0.5);
+  }
+
+  .effect-layer {
+    fill: hsla(9, 100%, 64%, 1);
+    pointer-events: none;
+  }
+
+  .roads {
+          stroke:  rgba(179, 135, 117, 0.651)  ;
+          fill: hsla(9, 100%, 64%, .0);
+        }
+
+  h1,
+  h2 {
+    position: absolute;
+    left: 20px;
+    top: 10px;
+    font-family: "Proxima Nova", Montserrat, sans-serif;
+    font-size: 2em;
+    font-weight: 100;
+    color: hsla(9, 100%, 64%, 0.5);
+  }
+  h2 {
+    top: 50px;
+    font-size: 1.6em;
+  }
+</style>
+<body>
+  <h1>ATL</h1>
+  <h2></h2>
+  <p />
+  <p />
+  <svg id="svg1"></svg>
+  <svg id="svg2"></svg>
+
+  <script src="http://d3js.org/d3.v3.min.js"></script>
+  <script>
+    var width = 960,
+      height = 500,
+      centered;
+
+    // Define color scale
+    var color = d3.scale
+      .linear()
+      .domain([1, 20])
+      .clamp(true)
+      .range(["#fff", "#409A99"]);
+
+    var projection = d3.geo
+      .albers()
+      .center([0, 33.74])
+      .rotate([84.38, 0])
+      .scale(130000)
+      .translate([width / 2, height / 2]);
+
+    var path = d3.geo.path().projection(projection);
+
+
+    // Set svg width & height
+    var svg1 = d3
+      .select("#svg1")
+      .attr("width", width)
+      .attr("height", height);
+
+    // Add background
+    svg1
+      .append("rect")
+      .attr("class", "background")
+      .attr("width", width)
+      .attr("height", height)
+      .on("click", clicked);
+
+    var g = svg1.append("g");
+
+    var effectLayer = g.append("g").classed("effect-layer", true);
+
+    var mapLayer = g.append("g").classed("map-layer", true);
+
+    var roadLayer = g.append("g").classed("roads", true);
+
+    // Load map data
+    features = neighborhoods_json.features;
+    rfeatures = roads_json.features;
+
+    // Update color scale domain based on data
+
+    // Draw each province as a path
+    mapLayer
+      .selectAll("path")
+      .data(features)
+      .enter()
+      .append("path")
+      .attr("d", path)
+      .attr("vector-effect", "non-scaling-stroke")
+      .style("fill", fillFn)
+      .on("mouseover", mouseover)
+      .on("mouseout", mouseout)
+      .on("click", clicked);
+
+    // Draw each province as a path
+    roadLayer
+      .selectAll("path")
+      .data(rfeatures)
+      .enter()
+      .append("path")
+      .attr("d", path)
+
+
+
+
+    // Get province name
+    function nameFn(d) {
+      return d && d.properties ? d.properties.name : null;
+    }
+
+    // Get neighborhood name length
+    function nameLength(d) {
+      var n = nameFn(d);
+      return n ? n.length : 0;
+    }
+
+    // Get neighborhood color
+    function fillFn(d) {
+      return;
+    }
+
+    // When clicked, zoom in
+    function clicked(d) {
+      var x, y, k;
+
+      // Compute centroid of the selected path
+      if (d && centered !== d) {
+        var centroid = path.centroid(d);
+        x = centroid[0];
+        y = centroid[1];
+        k = 4;
+        centered = d;
+      } else {
+        x = width / 2;
+        y = height / 2;
+        k = 1;
+        centered = null;
+      }
+
+      // Highlight the clicked neighborhood
+      mapLayer.selectAll("path").style("fill", function(d) {
+        return centered && d === centered ? "hsla(9, 100%, 64%, 1)" : fillFn(d);
+      });
+
+      // Zoom
+      g.transition()
+        .duration(750)
+        .attr(
+          "transform",
+          "translate(" +
+            width / 2 +
+            "," +
+            height / 2 +
+            ")scale(" +
+            k +
+            ")translate(" +
+            -x +
+            "," +
+            -y +
+            ")"
+        );
+    }
+
+    function mouseover(d) {
+      // Highlight hovered province
+      d3.select(this).style("fill", "hsla(9, 100%, 64%, 1)");
+      d3.select("h2").text(d.properties.name);
+    }
+
+    function mouseout(d) {
+      // Reset province color
+      mapLayer.selectAll("path").style("fill", function(d) {
+        return centered && d === centered ? "hsla(9, 100%, 64%, 1)" : fillFn(d);
+      });
+
+      // Remove effect text
+      effectLayer
+        .selectAll("text")
+        .transition()
+        .style("opacity", 0)
+        .remove();
+
+      d3.select("h2").text("");
+    }
+  </script>
+</body>
